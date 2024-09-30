@@ -1,5 +1,2 @@
-# reepopeepo
-## This is the peepo repo
-I am trying out stuff
-new and more text wow!
-### waht the heck!!
+# Instructions
+1. Open index.html in a tab in your web browser
