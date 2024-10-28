@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Clone the repository or pull the latest code
-                git 'https://github.com/yourusername/your-repo.git' // Replace with your repo URL
+                git 'https://github.com/rrehs/reepopeepo.git' // Replace with your repo URL
             }
         }
 
