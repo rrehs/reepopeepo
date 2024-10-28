@@ -8,8 +8,13 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                // Cloning the Git repository
-                git url: 'https://github.com/rrehs/reepopeepo.git', branch: 'main'
+                // Cloning the Git repository using git clone
+                script {
+                    sh 'git clone https://github.com/rrehs/reepopeepo.git' // Replace with your repo URL
+                    dir('reepopeepo') { // Change into the directory of the cloned repository
+                        sh 'git checkout main' // Ensure we are on the main branch
+                    }
+                }
             }
         }
         stage('Install Node.js and npm') {
@@ -38,7 +43,7 @@ pipeline {
     post {
         always {
             // Archive the linting results or any artifacts if necessary
-            archiveArtifacts artifacts: '**/*.html', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'reepopeepo/**/*.html', allowEmptyArchive: true
             echo 'Cleanup and notifications (if needed)'
         }
     }
