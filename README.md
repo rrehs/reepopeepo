@@ -1,2 +1,3 @@
 # Instructions
-1. Open index.html in a tab in your web browser
+1. Download the entire folder
+2. Open index.html using a web browser
