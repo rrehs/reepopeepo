@@ -1,18 +1,23 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'jenkins/jenkins:latest' // or your preferred Jenkins image
+            args '-u root' // This makes the pipeline run as root user
+        }
+    }
 
     stages {
         stage('Checkout') {
             steps {
                 // Clone the repository or pull the latest code
-                git branch: 'main', url: 'https://github.com/rrehs/reepopeepo.git' // Replace with your repo URL
+                git 'https://github.com/yourusername/your-repo.git' // Replace with your repo URL
             }
         }
 
         stage('Install Node.js and npm') {
             steps {
                 script {
-                    // Install Node.js and npm
+                    // Install Node.js and npm as root
                     sh '''
                     # Install required dependencies
                     apt-get update && \
@@ -29,8 +34,8 @@ pipeline {
 
         stage('Install HTMLHint') {
             steps {
-                // Install htmlhint locally
-                sh 'npm install -g htmlhint' // Use -g to install globally
+                // Install htmlhint globally as root
+                sh 'npm install -g htmlhint'
             }
         }
 
