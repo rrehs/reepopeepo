@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            
+            image 'jenkins/jenkins:latest' // or your preferred Jenkins image
             args '-u root' // This makes the pipeline run as root user
         }
     }
