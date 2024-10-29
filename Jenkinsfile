@@ -44,6 +44,18 @@ pipeline {
         always {
             archiveArtifacts artifacts: 'reepopeepo/**/*.html', allowEmptyArchive: true
             echo 'Build and lint results archived'
+            // Email configuration
+                def emailRecipients = 'khairularman56@gmail.com' // Recipient's email address
+                def subject = "Build ${currentBuild.fullDisplayName} completed"
+                def body = "The build has completed. Check the Jenkins job for details."
+
+                // Sending email notification
+                emailext (
+                    to: emailRecipients,
+                    subject: subject,
+                    body: body,
+                    mimeType: 'text/html' // Optional, change to 'text/plain' if needed
+                )
         }
         failure {
             echo 'Pipeline failed. Check the stages for errors.'
