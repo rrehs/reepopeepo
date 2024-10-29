@@ -44,22 +44,25 @@ pipeline {
         always {
             archiveArtifacts artifacts: 'reepopeepo/**/*.html', allowEmptyArchive: true
             echo 'Build and lint results archived'
-            script{
-            // Email configuration
+            script {
+                // Email configuration
                 def emailRecipients = 'khairularman56@gmail.com' // Recipient's email address
                 def subject = "Build ${currentBuild.fullDisplayName} completed"
                 def body = "The build has completed. Check the Jenkins job for details."
                 def logFile = "build.log"
+
+                // Write the build log to a file
                 writeFile(file: logFile, text: currentBuild.rawBuild.getLog(1000).join('\n'))
-                // Sending email notification
+
+                // Sending email notification with the build log attached
                 emailext (
                     to: emailRecipients,
                     subject: subject,
                     body: body,
-                    attachments: logFile,
-                    mimeType: 'text/html' // Optional, change to 'text/plain' if needed
+                    attachments: logFile, // Attach the log file
+                    mimeType: 'text/plain' // Change to 'text/html' if needed
                 )
-        }
+            }
         }
         failure {
             echo 'Pipeline failed. Check the stages for errors.'
