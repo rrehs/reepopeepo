@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    options {
+        // Clean workspace before starting the pipeline
+        cleanWs()
+    }
     stages {
         stage('Clone Repository') {
             steps {
