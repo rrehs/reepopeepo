@@ -1,10 +1,14 @@
 pipeline {
     agent any
-    options {
-        // Clean workspace before starting the pipeline
-        cleanWs()
-    }
     stages {
+        stage('Cleanup Workspace') {
+            steps {
+                script {
+                    // Remove all files and directories in the workspace
+                    sh 'rm -rf *'
+                }
+            }
+        }
         stage('Clone Repository') {
             steps {
                 script {
