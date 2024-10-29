@@ -1,41 +1,39 @@
 pipeline {
     agent {
         docker {
-            image 'node:14' // Use a Node.js image to run the pipeline
-            args '-u root' // Run as root to install packages
+            image 'node:14' // Use a Node.js image with pre-installed Node.js and npm
+            args '-u root' // Run as root for any necessary permissions
         }
     }
     stages {
         stage('Clone Repository') {
             steps {
-                // Cloning the Git repository using git clone
                 script {
                     sh 'git clone https://github.com/rrehs/reepopeepo.git' // Replace with your repo URL
-                    dir('reepopeepo') { // Change into the directory of the cloned repository
+                    dir('reepopeepo') {
                         sh 'git checkout main' // Ensure we are on the main branch
                     }
                 }
             }
         }
-        stage('Install Node.js and npm') {
+        stage('Install HTML Linter') {
             steps {
-                script {
-                    // Run commands to install npm packages
-                    sh 'npm install -g htmlhint' // Install HTMLHint globally
-                }
+                // Install HTMLHint (or other linters) globally for this session
+                sh 'npm install -g htmlhint'
             }
         }
         stage('Lint HTML Code') {
             steps {
                 script {
-                    // Run HTMLLint on the specified HTML files
-                    sh 'htmlhint **/*.html' // Update the path to your HTML files
+                    // Run HTMLHint on the specified HTML files
+                    dir('reepopeepo') { // Specify the directory with HTML files
+                        sh 'htmlhint **/*.html' // Lint all HTML files in the repo
+                    }
                 }
             }
         }
         stage('Build') {
             steps {
-                // Add your build steps here
                 echo 'Build stage (if needed)'
             }
         }
