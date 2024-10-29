@@ -44,6 +44,7 @@ pipeline {
         always {
             archiveArtifacts artifacts: 'reepopeepo/**/*.html', allowEmptyArchive: true
             echo 'Build and lint results archived'
+            script{
             // Email configuration
                 def emailRecipients = 'khairularman56@gmail.com' // Recipient's email address
                 def subject = "Build ${currentBuild.fullDisplayName} completed"
@@ -56,6 +57,7 @@ pipeline {
                     body: body,
                     mimeType: 'text/html' // Optional, change to 'text/plain' if needed
                 )
+        }
         }
         failure {
             echo 'Pipeline failed. Check the stages for errors.'
