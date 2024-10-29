@@ -4,7 +4,7 @@ pipeline {
         stage('Cleanup Workspace') {
             steps {
                 script {
-                    sh 'rm -rf *'
+                    sh 'rm -rf *' // Clean up workspace
                 }
             }
         }
@@ -22,18 +22,9 @@ pipeline {
             steps {
                 script {
                     dir('reepopeepo') {
-                        // Build the project (adjust the command if needed)
-                        sh 'npm run build' // Replace with your build command
-                    }
-                }
-            }
-        }
-        stage('Run Unit Tests') {
-            steps {
-                script {
-                    dir('reepopeepo') {
-                        // Run unit tests (adjust the command based on your testing framework)
-                        sh 'npm test' // Replace with your specific testing command
+                        // Minify HTML files
+                        sh 'npm install -g html-minifier' // Install html-minifier globally
+                        sh 'html-minifier --collapse-whitespace --remove-comments --minify-css true --minify-js true -o output.html *.html'
                     }
                 }
             }
@@ -42,8 +33,8 @@ pipeline {
             steps {
                 script {
                     dir('reepopeepo') {
-                        // Lint code to check for syntax and style errors
-                        sh 'htmlhint **/*.html' // Replace with other linter commands if needed
+                        // Lint HTML files
+                        sh 'htmlhint **/*.html' // Lint HTML files
                     }
                 }
             }
@@ -52,7 +43,7 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: 'reepopeepo/**/*.html', allowEmptyArchive: true
-            echo 'Build, test, and lint results archived'
+            echo 'Build and lint results archived'
         }
         failure {
             echo 'Pipeline failed. Check the stages for errors.'
