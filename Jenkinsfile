@@ -48,19 +48,18 @@ pipeline {
                 // Email configuration
                 def emailRecipients = 'khairularman56@gmail.com' // Recipient's email address
                 def subject = "Build ${currentBuild.fullDisplayName} completed"
-                def body = "The build has completed. Check the Jenkins job for details."
-                def logFile = "build.log"
+                def body = "The build has completed. Check the Jenkins job for details.\n\n"
+                
+                // Get the last 1000 lines of the build log
+                def buildLog = currentBuild.rawBuild.getLog(1000).join('\n')
+                body += "Build Log:\n${buildLog}" // Append log content to the email body
 
-                // Write the build log to a file
-                writeFile(file: logFile, text: currentBuild.rawBuild.getLog(1000).join('\n'))
-
-                // Sending email notification with the build log attached
+                // Sending email notification without attachments
                 emailext (
                     to: emailRecipients,
                     subject: subject,
                     body: body,
-                    attachments: logFile, // Attach the log file
-                    mimeType: 'text/plain' // Change to 'text/html' if needed
+                    mimeType: 'text/plain' // Change to 'text/html' if you want HTML format
                 )
             }
         }
