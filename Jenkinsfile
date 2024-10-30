@@ -79,11 +79,19 @@ pipeline {
             // Send success email
             script {
                 def emailRecipients = 'khairularman56@gmail.com' // Update with recipient's email
-                def subject = "Build ${currentBuild.fullDisplayName} succeeded"
+                def subject = "✅ Build ${currentBuild.fullDisplayName} Succeeded"
                 def body = """
-                <h2>The build has completed successfully.</h2>
-                <p>Check the Jenkins job for details.</p>
-                <pre>${currentBuild.rawBuild.getLog(1000).join('\n')}</pre>
+                <html>
+                <body>
+                    <h2 style="color: green;">The build has completed successfully!</h2>
+                    <p>Congratulations! The build and linting processes passed without any errors.</p>
+                    <h3>Details:</h3>
+                    <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                    <p><strong>Build Number:</strong> ${currentBuild.number}</p>
+                    <h3>Build Log:</h3>
+                    <pre style="background-color: #f4f4f4; padding: 10px;">${currentBuild.rawBuild.getLog(1000).join('\n')}</pre>
+                </body>
+                </html>
                 """
                 
                 emailext (
@@ -98,11 +106,19 @@ pipeline {
             // Send failure email
             script {
                 def emailRecipients = 'khairularman56@gmail.com' // Update with recipient's email
-                def subject = "Build ${currentBuild.fullDisplayName} failed"
+                def subject = "❌ Build ${currentBuild.fullDisplayName} Failed"
                 def body = """
-                <h2>The build has failed.</h2>
-                <p>Check the Jenkins job for details.</p>
-                <pre>${currentBuild.rawBuild.getLog(1000).join('\n')}</pre>
+                <html>
+                <body>
+                    <h2 style="color: red;">The build has failed.</h2>
+                    <p>Unfortunately, the build and linting processes encountered errors.</p>
+                    <h3>Details:</h3>
+                    <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                    <p><strong>Build Number:</strong> ${currentBuild.number}</p>
+                    <h3>Build Log:</h3>
+                    <pre style="background-color: #f4f4f4; padding: 10px;">${currentBuild.rawBuild.getLog(1000).join('\n')}</pre>
+                </body>
+                </html>
                 """
                 
                 emailext (
