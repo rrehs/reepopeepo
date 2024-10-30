@@ -80,16 +80,17 @@ pipeline {
             script {
                 def emailRecipients = 'khairularman56@gmail.com' // Update with recipient's email
                 def subject = "Build ${currentBuild.fullDisplayName} succeeded"
-                def body = "The build has completed successfully. Check the Jenkins job for details."
-                def logFile = "build.log"
-                writeFile(file: logFile, text: currentBuild.rawBuild.getLog(1000).join('\n'))
+                def body = """
+                <h2>The build has completed successfully.</h2>
+                <p>Check the Jenkins job for details.</p>
+                <pre>${currentBuild.rawBuild.getLog(1000).join('\n')}</pre>
+                """
                 
                 emailext (
                     to: emailRecipients,
                     subject: subject,
                     body: body,
-                    attachments: logFile,
-                    mimeType: 'text/html' // Optional, change to 'text/plain' if needed
+                    mimeType: 'text/html' // Sending as HTML to allow formatting
                 )
             }
         }
@@ -98,16 +99,17 @@ pipeline {
             script {
                 def emailRecipients = 'khairularman56@gmail.com' // Update with recipient's email
                 def subject = "Build ${currentBuild.fullDisplayName} failed"
-                def body = "The build has failed. Check the Jenkins job for details."
-                def logFile = "build.log"
-                writeFile(file: logFile, text: currentBuild.rawBuild.getLog(1000).join('\n'))
+                def body = """
+                <h2>The build has failed.</h2>
+                <p>Check the Jenkins job for details.</p>
+                <pre>${currentBuild.rawBuild.getLog(1000).join('\n')}</pre>
+                """
                 
                 emailext (
                     to: emailRecipients,
                     subject: subject,
                     body: body,
-                    attachments: logFile,
-                    mimeType: 'text/html' // Optional, change to 'text/plain' if needed
+                    mimeType: 'text/html' // Sending as HTML to allow formatting
                 )
             }
             echo 'Pipeline failed. Check the stages for errors.'
