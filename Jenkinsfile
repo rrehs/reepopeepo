@@ -71,10 +71,45 @@ pipeline {
     }
     post {
         always {
+            // Archive artifacts
             archiveArtifacts artifacts: 'reepopeepo/**/*.html', allowEmptyArchive: true
             echo 'Build and lint results archived'
         }
+        success {
+            // Send success email
+            script {
+                def emailRecipients = 'khairularman56@gmail.com' // Update with recipient's email
+                def subject = "Build ${currentBuild.fullDisplayName} succeeded"
+                def body = "The build has completed successfully. Check the Jenkins job for details."
+                def logFile = "build.log"
+                writeFile(file: logFile, text: currentBuild.rawBuild.getLog(1000).join('\n'))
+                
+                emailext (
+                    to: emailRecipients,
+                    subject: subject,
+                    body: body,
+                    attachments: logFile,
+                    mimeType: 'text/html' // Optional, change to 'text/plain' if needed
+                )
+            }
+        }
         failure {
+            // Send failure email
+            script {
+                def emailRecipients = 'khairularman56@gmail.com' // Update with recipient's email
+                def subject = "Build ${currentBuild.fullDisplayName} failed"
+                def body = "The build has failed. Check the Jenkins job for details."
+                def logFile = "build.log"
+                writeFile(file: logFile, text: currentBuild.rawBuild.getLog(1000).join('\n'))
+                
+                emailext (
+                    to: emailRecipients,
+                    subject: subject,
+                    body: body,
+                    attachments: logFile,
+                    mimeType: 'text/html' // Optional, change to 'text/plain' if needed
+                )
+            }
             echo 'Pipeline failed. Check the stages for errors.'
         }
     }
