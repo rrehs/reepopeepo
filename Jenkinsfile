@@ -48,25 +48,28 @@ pipeline {
                 }
             }
         }
-    }
-    post {
-        success {
-            stage('Push Changes') {
-                steps {
-                    script {
-                        dir('reepopeepo') {
-                            withCredentials([usernamePassword(credentialsId: 'ba552a1c-c018-497e-a733-cae3f2d4c7b3', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_TOKEN')]) {
-                                sh 'git config user.name "rrehs"'
-                                sh 'git config user.email "spinorager338@gmail.com"'
-                                sh 'git add .'
-                                sh 'git commit -m "Automated commit after successful build and linting" || echo "Nothing to commit"'
-                                sh 'git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/rrehs/reepopeepo.git main'
-                            }
+        stage('Push Changes') {
+            when {
+                allOf {
+                    expression { currentBuild.result == null } // No failures
+                }
+            }
+            steps {
+                script {
+                    dir('reepopeepo') {
+                        withCredentials([usernamePassword(credentialsId: 'ba552a1c-c018-497e-a733-cae3f2d4c7b3', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_TOKEN')]) {
+                            sh 'git config user.name "rrehs"'
+                            sh 'git config user.email "spinorager338@gmail.com"'
+                            sh 'git add .'
+                            sh 'git commit -m "Automated commit after successful build and linting" || echo "Nothing to commit"'
+                            sh 'git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/rrehs/reepopeepo.git main'
                         }
                     }
                 }
             }
         }
+    }
+    post {
         always {
             archiveArtifacts artifacts: 'reepopeepo/**/*.html', allowEmptyArchive: true
             echo 'Build and lint results archived'
