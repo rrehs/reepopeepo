@@ -42,8 +42,8 @@ pipeline {
                 script {
                     dir('reepopeepo') {
                         // Only attempt to push if all previous stages have succeeded
-                        sh 'git config user.name "Jenkins CI"'
-                        sh 'git config user.email "jenkins@example.com"'
+                        sh 'git config user.name "rrehs"'
+                        sh 'git config user.email "spinorager338@gmail.com"'
                         sh 'git add .'
                         sh 'git commit -m "Automated commit after successful build and linting" || echo "Nothing to commit, working directory clean"' // Commit if there are changes
                         sh 'git push origin main' // Push changes to GitHub
