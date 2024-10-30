@@ -11,9 +11,9 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 script {
-                    sh 'git clone https://github.com/rrehs/reepopeepo.git'
+                    sh 'git clone https://github.com/rrehs/reepopeepo.git' // Clone the repository
                     dir('reepopeepo') {
-                        sh 'git checkout main'
+                        sh 'git checkout main' // Switch to main branch
                     }
                 }
             }
@@ -22,9 +22,8 @@ pipeline {
             steps {
                 script {
                     dir('reepopeepo') {
-                        // Minify HTML files
-                        sh 'npm install -g html-minifier' // Install html-minifier globally
-                        sh 'html-minifier --collapse-whitespace --remove-comments --minify-css true --minify-js true -o output.html *.html'
+                        sh 'npm install -g html-minifier' // Install html-minifier
+                        sh 'html-minifier --collapse-whitespace --remove-comments --minify-css true --minify-js true -o output.html *.html' // Minify HTML files
                     }
                 }
             }
@@ -33,8 +32,21 @@ pipeline {
             steps {
                 script {
                     dir('reepopeepo') {
-                        // Lint HTML files
                         sh 'htmlhint **/*.html' // Lint HTML files
+                    }
+                }
+            }
+        }
+        stage('Push Changes') {
+            steps {
+                script {
+                    dir('reepopeepo') {
+                        // Only attempt to push if all previous stages have succeeded
+                        sh 'git config user.name "Jenkins CI"'
+                        sh 'git config user.email "jenkins@example.com"'
+                        sh 'git add .'
+                        sh 'git commit -m "Automated commit after successful build and linting" || echo "Nothing to commit, working directory clean"' // Commit if there are changes
+                        sh 'git push origin main' // Push changes to GitHub
                     }
                 }
             }
@@ -46,35 +58,19 @@ pipeline {
             echo 'Build and lint results archived'
             script {
                 // Email configuration
-                def emailRecipients = 'khairularman56@gmail.com' // Recipient's email address
+                def emailRecipients = 'khairularman56@gmail.com' // Recipient's email
                 def subject = "Build ${currentBuild.fullDisplayName} completed"
-                
-                // Get the last 1000 lines of the build log
-                def buildLog = currentBuild.rawBuild.getLog(1000).join('<br/>') // Use <br/> for line breaks in HTML
-                def body = """
-                    <html>
-                        <body>
-                            <h2>Build Status: ${currentBuild.currentResult}</h2>
-                            <p>The build has completed. Check the Jenkins job for details.</p>
-                            <h3>Build Log:</h3>
-                            <pre style="background-color: #f4f4f4; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-                                ${buildLog}
-                            </pre>
-                        </body>
-                    </html>
-                """
-                
-                // Sending email notification
+                def body = "<p>The build has completed.</p><p>Check the Jenkins job for details.</p><pre>${currentBuild.rawBuild.getLog(1000).join('\n')}</pre>"
                 emailext (
                     to: emailRecipients,
                     subject: subject,
                     body: body,
-                    mimeType: 'text/html' // Set the mimeType to 'text/html' for HTML formatting
+                    mimeType: 'text/html'
                 )
             }
         }
         failure {
-            echo 'Pipeline failed. Check the stages for errors.'
+            echo 'Build failed! Code has NOT been pushed.'
         }
     }
 }
