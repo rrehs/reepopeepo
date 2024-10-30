@@ -41,7 +41,7 @@ pipeline {
             steps {
                 script {
             dir('reepopeepo') {
-                withCredentials([usernamePassword(credentialsId: 'github-pat-credential-id', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_TOKEN')]) {
+                withCredentials([usernamePassword(credentialsId: 'ba552a1c-c018-497e-a733-cae3f2d4c7b3', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_TOKEN')]) {
                     sh 'git config user.name "Jenkins CI"'
                     sh 'git config user.email "jenkins@example.com"'
                     sh 'git add .'
