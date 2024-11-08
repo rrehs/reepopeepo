@@ -15,14 +15,28 @@ pipeline {
         stage('Initialize') {
             steps {
                 script {
-                    FAILED_STAGES = [] // Initialize tracking of failed stages
+                    stageStatus = [:] // Initialize tracking of all stage statuses
                 }
             }
         }
         stage('Cleanup Workspace') {
             steps {
-                script {
-                    sh 'rm -rf *' // Clean up workspace
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    script {
+                        sh 'rm -rf *' // Clean up workspace
+                    }
+                }
+            }
+            post {
+                success {
+                    script {
+                        stageStatus['Cleanup Workspace'] = 'Success'
+                    }
+                }
+                failure {
+                    script {
+                        stageStatus['Cleanup Workspace'] = 'Failure'
+                    }
                 }
             }
         }
@@ -38,9 +52,14 @@ pipeline {
                 }
             }
             post {
+                success {
+                    script {
+                        stageStatus['Clone Repository'] = 'Success'
+                    }
+                }
                 failure {
                     script {
-                        FAILED_STAGES.add('Clone Repository')
+                        stageStatus['Clone Repository'] = 'Failure'
                     }
                 }
             }
@@ -57,9 +76,14 @@ pipeline {
                 }
             }
             post {
+                success {
+                    script {
+                        stageStatus['Build Code'] = 'Success'
+                    }
+                }
                 failure {
                     script {
-                        FAILED_STAGES.add('Build Code')
+                        stageStatus['Build Code'] = 'Failure'
                     }
                 }
             }
@@ -75,9 +99,14 @@ pipeline {
                 }
             }
             post {
+                success {
+                    script {
+                        stageStatus['Lint Code'] = 'Success'
+                    }
+                }
                 failure {
                     script {
-                        FAILED_STAGES.add('Lint Code')
+                        stageStatus['Lint Code'] = 'Failure'
                     }
                 }
             }
@@ -104,9 +133,14 @@ pipeline {
                 }
             }
             post {
+                success {
+                    script {
+                        stageStatus['Push Changes'] = 'Success'
+                    }
+                }
                 failure {
                     script {
-                        FAILED_STAGES.add('Push Changes')
+                        stageStatus['Push Changes'] = 'Failure'
                     }
                 }
             }
@@ -146,17 +180,18 @@ pipeline {
             }
         }
         failure {
-            // Send failure email with failed stages
+            // Send failure email with all stages and their statuses
             script {
                 def emailRecipients = 'khairularman56@gmail.com' // Update with recipient's email
-                def failedStagesList = FAILED_STAGES.join(', ')
+                def stagesSummary = stageStatus.collect { stage, status -> "<li><strong>${stage}</strong>: ${status}</li>" }.join('\n')
                 def subject = "❌ Build ${currentBuild.fullDisplayName} Failed"
                 def body = """
                 <html>
                 <body>
                     <h2 style="color: red;">The build has failed.</h2>
-                    <p>Unfortunately, the build encountered errors in the following stages:</p>
-                    <p><strong>Failed Stages:</strong> ${failedStagesList}</p>
+                    <p>Unfortunately, the build encountered errors.</p>
+                    <h3>Stages Status:</h3>
+                    <ul>${stagesSummary}</ul>
                     <h3>Details:</h3>
                     <p><strong>Job:</strong> ${env.JOB_NAME}</p>
                     <p><strong>Build Number:</strong> ${currentBuild.number}</p>
