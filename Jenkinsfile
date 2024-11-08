@@ -1,3 +1,6 @@
+// Declare stageStatus as a global variable at the top level
+def stageStatus = [:]
+
 pipeline {
     agent any
     triggers {
@@ -23,6 +26,7 @@ pipeline {
                         'Lint Code': 'Pending',
                         'Push Changes': 'Pending'
                     ]
+                    echo "Initialized stageStatus: ${stageStatus}"
                 }
             }
         }
@@ -38,11 +42,13 @@ pipeline {
                 success {
                     script { 
                         stageStatus['Cleanup Workspace'] = 'Success'
+                        echo "Stage 'Cleanup Workspace' status set to Success"
                     }
                 }
                 failure {
                     script { 
                         stageStatus['Cleanup Workspace'] = 'Failure'
+                        echo "Stage 'Cleanup Workspace' status set to Failure"
                     }
                 }
             }
@@ -62,11 +68,13 @@ pipeline {
                 success {
                     script {
                         stageStatus['Clone Repository'] = 'Success'
+                        echo "Stage 'Clone Repository' status set to Success"
                     }
                 }
                 failure {
                     script {
                         stageStatus['Clone Repository'] = 'Failure'
+                        echo "Stage 'Clone Repository' status set to Failure"
                     }
                 }
             }
@@ -86,11 +94,13 @@ pipeline {
                 success {
                     script {
                         stageStatus['Build Code'] = 'Success'
+                        echo "Stage 'Build Code' status set to Success"
                     }
                 }
                 failure {
                     script {
                         stageStatus['Build Code'] = 'Failure'
+                        echo "Stage 'Build Code' status set to Failure"
                     }
                 }
             }
@@ -109,11 +119,13 @@ pipeline {
                 success {
                     script {
                         stageStatus['Lint Code'] = 'Success'
+                        echo "Stage 'Lint Code' status set to Success"
                     }
                 }
                 failure {
                     script {
                         stageStatus['Lint Code'] = 'Failure'
+                        echo "Stage 'Lint Code' status set to Failure"
                     }
                 }
             }
@@ -141,17 +153,20 @@ pipeline {
                 success {
                     script {
                         stageStatus['Push Changes'] = 'Success'
+                        echo "Stage 'Push Changes' status set to Success"
                     }
                 }
                 failure {
                     script {
                         stageStatus['Push Changes'] = 'Failure'
+                        echo "Stage 'Push Changes' status set to Failure"
                     }
                 }
                 always {
                     script {
                         if (currentBuild.result == 'SKIPPED') {
                             stageStatus['Push Changes'] = 'Skipped'
+                            echo "Stage 'Push Changes' was skipped"
                         }
                     }
                 }
@@ -161,6 +176,7 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: 'reepopeepo/**/*.html', allowEmptyArchive: true
+            echo "Final stageStatus: ${stageStatus}"
             echo 'Build and lint results archived'
         }
         success {
