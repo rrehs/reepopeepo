@@ -32,8 +32,53 @@ pipeline {
                 failure { script { stageStatus['Cleanup Workspace'] = 'Failure' } }
             }
         }
-        // Other stages here...
-
+        stage('Clone Repository') {
+            steps {
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    script {
+                        sh 'git clone https://github.com/rrehs/reepopeepo.git'
+                        dir('reepopeepo') {
+                            sh 'git checkout main'
+                        }
+                    }
+                }
+            }
+            post {
+                success { script { stageStatus['Clone Repository'] = 'Success' } }
+                failure { script { stageStatus['Clone Repository'] = 'Failure' } }
+            }
+        }
+        stage('Build Code') {
+            steps {
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    script {
+                        dir('reepopeepo') {
+                            sh 'npm install -g html-minifier'
+                            sh 'html-minifier --collapse-whitespace --remove-comments --minify-css true --minify-js true -o output.html *.html'
+                        }
+                    }
+                }
+            }
+            post {
+                success { script { stageStatus['Build Code'] = 'Success' } }
+                failure { script { stageStatus['Build Code'] = 'Failure' } }
+            }
+        }
+        stage('Lint Code') {
+            steps {
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    script {
+                        dir('reepopeepo') {
+                            sh 'htmlhint **/*.html'
+                        }
+                    }
+                }
+            }
+            post {
+                success { script { stageStatus['Lint Code'] = 'Success' } }
+                failure { script { stageStatus['Lint Code'] = 'Failure' } }
+            }
+        }
         stage('Push Changes') {
             when {
                 allOf { expression { currentBuild.result == null } } // Only run if no previous failures
@@ -76,6 +121,7 @@ pipeline {
     }
 }
 
+// Helper function to send email with all stages and their statuses
 def sendEmail(buildResult, subjectEmoji, color, message) {
     def emailRecipients = 'khairularman56@gmail.com'
     def stagesSummary = stageStatus.collect { stage, status -> "<li><strong>${stage}</strong>: ${status}</li>" }.join('\n')
