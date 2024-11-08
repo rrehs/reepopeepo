@@ -107,6 +107,7 @@ pipeline {
             post {
                 success { script { stageStatus['Push Changes'] = 'Success' } }
                 failure { script { stageStatus['Push Changes'] = 'Failure' } }
+                always { script { if (currentBuild.result == 'SKIPPED') { stageStatus['Push Changes'] = 'Skipped' } } }
             }
         }
     }
