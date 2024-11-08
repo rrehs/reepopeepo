@@ -127,14 +127,10 @@ pipeline {
     }
 }
 
-// Updated sendEmail function
+// Helper function to send email with all stages and their statuses
 def sendEmail(buildResult, subjectEmoji, color, message) {
     def emailRecipients = 'khairularman56@gmail.com'
     def stagesSummary = stageStatus.collect { stage, status -> "<li><strong>${stage}</strong>: ${status}</li>" }.join('\n')
-
-    // Fetch the last 100 lines of the log and sanitize it for HTML
-    def buildLog = currentBuild.rawBuild.getLog(100).join('\n').replaceAll(/[\u001B\u009B][[\\]()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nq-uy=><]/, '')
-    
     def subject = "${subjectEmoji} Build ${currentBuild.fullDisplayName} ${buildResult}"
     def body = """
     <html>
@@ -145,12 +141,11 @@ def sendEmail(buildResult, subjectEmoji, color, message) {
         <h3>Build Details:</h3>
         <p><strong>Job:</strong> ${env.JOB_NAME}</p>
         <p><strong>Build Number:</strong> ${currentBuild.number}</p>
-        <h3>Build Log (Last 100 Lines):</h3>
-        <pre style="background-color: #f4f4f4; padding: 10px; white-space: pre-wrap;">${buildLog}</pre>
+        <h3>Build Log (Last 1000 Lines):</h3>
+        <pre style="background-color: #f4f4f4; padding: 10px;">${currentBuild.rawBuild.getLog(1000).join('\n')}</pre>
     </body>
     </html>
     """
-    
     emailext (
         to: emailRecipients,
         subject: subject,
