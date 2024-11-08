@@ -15,7 +15,13 @@ pipeline {
         stage('Initialize') {
             steps {
                 script {
-                    stageStatus = [:] // Initialize tracking of all stage statuses
+                    stageStatus = [
+                        'Cleanup Workspace': 'Pending',
+                        'Clone Repository': 'Pending',
+                        'Build Code': 'Pending',
+                        'Lint Code': 'Pending',
+                        'Push Changes': 'Pending'
+                    ]
                 }
             }
         }
@@ -23,7 +29,7 @@ pipeline {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     script {
-                        sh 'rm -rf *' // Clean up workspace
+                        sh 'rm -rf *'
                     }
                 }
             }
