@@ -179,6 +179,36 @@ pipeline {
                 )
             }
         }
+        unstable {
+            // Send unstable email
+            script {
+                def emailRecipients = 'khairularman56@gmail.com' // Update with recipient's email
+                def stagesSummary = stageStatus.collect { stage, status -> "<li><strong>${stage}</strong>: ${status}</li>" }.join('\n')
+                def subject = "⚠️ Build ${currentBuild.fullDisplayName} Unstable"
+                def body = """
+                <html>
+                <body>
+                    <h2 style="color: orange;">The build is unstable.</h2>
+                    <p>The build completed with some issues.</p>
+                    <h3>Stages Status:</h3>
+                    <ul>${stagesSummary}</ul>
+                    <h3>Details:</h3>
+                    <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                    <p><strong>Build Number:</strong> ${currentBuild.number}</p>
+                    <h3>Build Log:</h3>
+                    <pre style="background-color: #f4f4f4; padding: 10px;">${currentBuild.rawBuild.getLog(1000).join('\n')}</pre>
+                </body>
+                </html>
+                """
+                
+                emailext (
+                    to: emailRecipients,
+                    subject: subject,
+                    body: body,
+                    mimeType: 'text/html' // Sending as HTML to allow formatting
+                )
+            }
+        }
         failure {
             // Send failure email with all stages and their statuses
             script {
