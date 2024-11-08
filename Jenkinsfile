@@ -1,11 +1,3 @@
-def stageStatus = [
-    'Cleanup Workspace': 'Pending',
-    'Clone Repository': 'Pending',
-    'Build Code': 'Pending',
-    'Lint Code': 'Pending',
-    'Push Changes': 'Pending'
-]
-
 pipeline {
     agent any
     triggers {
@@ -20,6 +12,20 @@ pipeline {
         )
     }
     stages {
+        stage('Initialize') {
+            steps {
+                script {
+                    // Initialize the stageStatus map
+                    stageStatus = [
+                        'Cleanup Workspace': 'Pending',
+                        'Clone Repository': 'Pending',
+                        'Build Code': 'Pending',
+                        'Lint Code': 'Pending',
+                        'Push Changes': 'Pending'
+                    ]
+                }
+            }
+        }
         stage('Cleanup Workspace') {
             steps {
                 script {
@@ -30,12 +36,12 @@ pipeline {
             }
             post {
                 success {
-                    script {
+                    script { 
                         stageStatus['Cleanup Workspace'] = 'Success'
                     }
                 }
                 failure {
-                    script {
+                    script { 
                         stageStatus['Cleanup Workspace'] = 'Failure'
                     }
                 }
@@ -158,13 +164,13 @@ pipeline {
             echo 'Build and lint results archived'
         }
         success {
-            sendEmail('Success', '✅', 'green', 'The build and linting processes completed successfully.')
+            sendEmail('Success', '✅ Build Succeeded', 'green', 'The build and linting processes completed successfully.')
         }
         unstable {
-            sendEmail('Unstable', '⚠️', 'orange', 'The build completed with some issues.')
+            sendEmail('Unstable', '⚠️ Build Unstable', 'orange', 'The build completed with some issues.')
         }
         failure {
-            sendEmail('Failure', '❌', 'red', 'The build encountered errors.')
+            sendEmail('Failure', '❌ Build Failed', 'red', 'The build encountered errors.')
         }
     }
 }
