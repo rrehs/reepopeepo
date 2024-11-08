@@ -11,10 +11,14 @@ pipeline {
             printPostContent: true
         )
     }
-    environment {
-        FAILED_STAGES = [] // Track failed stages
-    }
     stages {
+        stage('Initialize') {
+            steps {
+                script {
+                    FAILED_STAGES = [] // Initialize tracking of failed stages
+                }
+            }
+        }
         stage('Cleanup Workspace') {
             steps {
                 script {
