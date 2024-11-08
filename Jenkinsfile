@@ -6,10 +6,13 @@ pipeline {
                 [key: 'ref', value: '$.ref']
             ],
             causeString: 'Triggered on push to GitHub',
-            token: '1337yana', // Optional, but recommended
+            token: '1337yana',
             printContributedVariables: true,
             printPostContent: true
         )
+    }
+    environment {
+        FAILED_STAGES = [] // Track failed stages
     }
     stages {
         stage('Cleanup Workspace') {
@@ -21,29 +24,56 @@ pipeline {
         }
         stage('Clone Repository') {
             steps {
-                script {
-                    sh 'git clone https://github.com/rrehs/reepopeepo.git'
-                    dir('reepopeepo') {
-                        sh 'git checkout main'
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    script {
+                        sh 'git clone https://github.com/rrehs/reepopeepo.git'
+                        dir('reepopeepo') {
+                            sh 'git checkout main'
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    script {
+                        FAILED_STAGES.add('Clone Repository')
                     }
                 }
             }
         }
         stage('Build Code') {
             steps {
-                script {
-                    dir('reepopeepo') {
-                        sh 'npm install -g html-minifier'
-                        sh 'html-minifier --collapse-whitespace --remove-comments --minify-css true --minify-js true -o output.html *.html'
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    script {
+                        dir('reepopeepo') {
+                            sh 'npm install -g html-minifier'
+                            sh 'html-minifier --collapse-whitespace --remove-comments --minify-css true --minify-js true -o output.html *.html'
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    script {
+                        FAILED_STAGES.add('Build Code')
                     }
                 }
             }
         }
         stage('Lint Code') {
             steps {
-                script {
-                    dir('reepopeepo') {
-                        sh 'htmlhint **/*.html'
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    script {
+                        dir('reepopeepo') {
+                            sh 'htmlhint **/*.html'
+                        }
+                    }
+                }
+            }
+            post {
+                failure {
+                    script {
+                        FAILED_STAGES.add('Lint Code')
                     }
                 }
             }
@@ -55,15 +85,24 @@ pipeline {
                 }
             }
             steps {
-                script {
-                    dir('reepopeepo') {
-                        withCredentials([usernamePassword(credentialsId: 'ba552a1c-c018-497e-a733-cae3f2d4c7b3', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_TOKEN')]) {
-                            sh 'git config user.name "rrehs"'
-                            sh 'git config user.email "spinorager338@gmail.com"'
-                            sh 'git add .'
-                            sh 'git commit -m "Automated commit after successful build and linting" || echo "Nothing to commit"'
-                            sh 'git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/rrehs/reepopeepo.git main'
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    script {
+                        dir('reepopeepo') {
+                            withCredentials([usernamePassword(credentialsId: 'ba552a1c-c018-497e-a733-cae3f2d4c7b3', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_TOKEN')]) {
+                                sh 'git config user.name "rrehs"'
+                                sh 'git config user.email "spinorager338@gmail.com"'
+                                sh 'git add .'
+                                sh 'git commit -m "Automated commit after successful build and linting" || echo "Nothing to commit"'
+                                sh 'git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/rrehs/reepopeepo.git main'
+                            }
                         }
+                    }
+                }
+            }
+            post {
+                failure {
+                    script {
+                        FAILED_STAGES.add('Push Changes')
                     }
                 }
             }
@@ -103,15 +142,17 @@ pipeline {
             }
         }
         failure {
-            // Send failure email
+            // Send failure email with failed stages
             script {
                 def emailRecipients = 'khairularman56@gmail.com' // Update with recipient's email
+                def failedStagesList = FAILED_STAGES.join(', ')
                 def subject = "❌ Build ${currentBuild.fullDisplayName} Failed"
                 def body = """
                 <html>
                 <body>
                     <h2 style="color: red;">The build has failed.</h2>
-                    <p>Unfortunately, the build and linting processes encountered errors.</p>
+                    <p>Unfortunately, the build encountered errors in the following stages:</p>
+                    <p><strong>Failed Stages:</strong> ${failedStagesList}</p>
                     <h3>Details:</h3>
                     <p><strong>Job:</strong> ${env.JOB_NAME}</p>
                     <p><strong>Build Number:</strong> ${currentBuild.number}</p>
