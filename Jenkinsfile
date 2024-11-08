@@ -1,5 +1,14 @@
-// Declare stageStatus as a global variable at the top level
-def stageStatus = [:]
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+// Initialize stageStatus as a JSON string in the environment
+env.stageStatus = JsonOutput.toJson([
+    'Cleanup Workspace': 'Pending',
+    'Clone Repository': 'Pending',
+    'Build Code': 'Pending',
+    'Lint Code': 'Pending',
+    'Push Changes': 'Pending'
+])
 
 pipeline {
     agent any
@@ -15,21 +24,6 @@ pipeline {
         )
     }
     stages {
-        stage('Initialize') {
-            steps {
-                script {
-                    // Initialize the stageStatus map
-                    stageStatus = [
-                        'Cleanup Workspace': 'Pending',
-                        'Clone Repository': 'Pending',
-                        'Build Code': 'Pending',
-                        'Lint Code': 'Pending',
-                        'Push Changes': 'Pending'
-                    ]
-                    echo "Initialized stageStatus: ${stageStatus}"
-                }
-            }
-        }
         stage('Cleanup Workspace') {
             steps {
                 script {
@@ -40,15 +34,13 @@ pipeline {
             }
             post {
                 success {
-                    script { 
-                        stageStatus['Cleanup Workspace'] = 'Success'
-                        echo "Stage 'Cleanup Workspace' status set to Success"
+                    script {
+                        updateStageStatus('Cleanup Workspace', 'Success')
                     }
                 }
                 failure {
-                    script { 
-                        stageStatus['Cleanup Workspace'] = 'Failure'
-                        echo "Stage 'Cleanup Workspace' status set to Failure"
+                    script {
+                        updateStageStatus('Cleanup Workspace', 'Failure')
                     }
                 }
             }
@@ -67,14 +59,12 @@ pipeline {
             post {
                 success {
                     script {
-                        stageStatus['Clone Repository'] = 'Success'
-                        echo "Stage 'Clone Repository' status set to Success"
+                        updateStageStatus('Clone Repository', 'Success')
                     }
                 }
                 failure {
                     script {
-                        stageStatus['Clone Repository'] = 'Failure'
-                        echo "Stage 'Clone Repository' status set to Failure"
+                        updateStageStatus('Clone Repository', 'Failure')
                     }
                 }
             }
@@ -93,14 +83,12 @@ pipeline {
             post {
                 success {
                     script {
-                        stageStatus['Build Code'] = 'Success'
-                        echo "Stage 'Build Code' status set to Success"
+                        updateStageStatus('Build Code', 'Success')
                     }
                 }
                 failure {
                     script {
-                        stageStatus['Build Code'] = 'Failure'
-                        echo "Stage 'Build Code' status set to Failure"
+                        updateStageStatus('Build Code', 'Failure')
                     }
                 }
             }
@@ -118,14 +106,12 @@ pipeline {
             post {
                 success {
                     script {
-                        stageStatus['Lint Code'] = 'Success'
-                        echo "Stage 'Lint Code' status set to Success"
+                        updateStageStatus('Lint Code', 'Success')
                     }
                 }
                 failure {
                     script {
-                        stageStatus['Lint Code'] = 'Failure'
-                        echo "Stage 'Lint Code' status set to Failure"
+                        updateStageStatus('Lint Code', 'Failure')
                     }
                 }
             }
@@ -152,21 +138,18 @@ pipeline {
             post {
                 success {
                     script {
-                        stageStatus['Push Changes'] = 'Success'
-                        echo "Stage 'Push Changes' status set to Success"
+                        updateStageStatus('Push Changes', 'Success')
                     }
                 }
                 failure {
                     script {
-                        stageStatus['Push Changes'] = 'Failure'
-                        echo "Stage 'Push Changes' status set to Failure"
+                        updateStageStatus('Push Changes', 'Failure')
                     }
                 }
                 always {
                     script {
                         if (currentBuild.result == 'SKIPPED') {
-                            stageStatus['Push Changes'] = 'Skipped'
-                            echo "Stage 'Push Changes' was skipped"
+                            updateStageStatus('Push Changes', 'Skipped')
                         }
                     }
                 }
@@ -176,7 +159,7 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: 'reepopeepo/**/*.html', allowEmptyArchive: true
-            echo "Final stageStatus: ${stageStatus}"
+            echo "Final stageStatus: ${env.stageStatus}"
             echo 'Build and lint results archived'
         }
         success {
@@ -196,7 +179,8 @@ import org.apache.commons.lang.StringEscapeUtils
 // Helper function to send email with all stages and their statuses
 def sendEmail(buildResult, subjectEmoji, color, message) {
     def emailRecipients = 'khairularman56@gmail.com'
-    def stagesSummary = stageStatus.collect { stage, status -> "<li><strong>${stage}</strong>: ${status}</li>" }.join('\n')
+    def stageStatusMap = new JsonSlurper().parseText(env.stageStatus)
+    def stagesSummary = stageStatusMap.collect { stage, status -> "<li><strong>${stage}</strong>: ${status}</li>" }.join('\n')
     def subject = "${subjectEmoji} Build ${currentBuild.fullDisplayName} ${buildResult}"
     
     // Escape special characters in the build log
@@ -223,4 +207,11 @@ def sendEmail(buildResult, subjectEmoji, color, message) {
         body: body,
         mimeType: 'text/html'
     )
+}
+
+// Function to update the stage status
+def updateStageStatus(stageName, status) {
+    def stageStatusMap = new JsonSlurper().parseText(env.stageStatus)
+    stageStatusMap[stageName] = status
+    env.stageStatus = JsonOutput.toJson(stageStatusMap)
 }
