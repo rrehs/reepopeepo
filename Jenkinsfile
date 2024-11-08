@@ -15,6 +15,7 @@ pipeline {
         stage('Initialize') {
             steps {
                 script {
+                    // Initialize the stageStatus map
                     stageStatus = [
                         'Cleanup Workspace': 'Pending',
                         'Clone Repository': 'Pending',
@@ -27,21 +28,29 @@ pipeline {
         }
         stage('Cleanup Workspace') {
             steps {
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    script {
+                script {
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         sh 'rm -rf *'
                     }
                 }
             }
             post {
-                success { script { stageStatus['Cleanup Workspace'] = 'Success' } }
-                failure { script { stageStatus['Cleanup Workspace'] = 'Failure' } }
+                success {
+                    script { 
+                        stageStatus['Cleanup Workspace'] = 'Success'
+                    }
+                }
+                failure {
+                    script { 
+                        stageStatus['Cleanup Workspace'] = 'Failure'
+                    }
+                }
             }
         }
         stage('Clone Repository') {
             steps {
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    script {
+                script {
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         sh 'git clone https://github.com/rrehs/reepopeepo.git'
                         dir('reepopeepo') {
                             sh 'git checkout main'
@@ -50,14 +59,22 @@ pipeline {
                 }
             }
             post {
-                success { script { stageStatus['Clone Repository'] = 'Success' } }
-                failure { script { stageStatus['Clone Repository'] = 'Failure' } }
+                success {
+                    script {
+                        stageStatus['Clone Repository'] = 'Success'
+                    }
+                }
+                failure {
+                    script {
+                        stageStatus['Clone Repository'] = 'Failure'
+                    }
+                }
             }
         }
         stage('Build Code') {
             steps {
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    script {
+                script {
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         dir('reepopeepo') {
                             sh 'npm install -g html-minifier'
                             sh 'html-minifier --collapse-whitespace --remove-comments --minify-css true --minify-js true -o output.html *.html'
@@ -66,14 +83,22 @@ pipeline {
                 }
             }
             post {
-                success { script { stageStatus['Build Code'] = 'Success' } }
-                failure { script { stageStatus['Build Code'] = 'Failure' } }
+                success {
+                    script {
+                        stageStatus['Build Code'] = 'Success'
+                    }
+                }
+                failure {
+                    script {
+                        stageStatus['Build Code'] = 'Failure'
+                    }
+                }
             }
         }
         stage('Lint Code') {
             steps {
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    script {
+                script {
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         dir('reepopeepo') {
                             sh 'htmlhint **/*.html'
                         }
@@ -81,8 +106,16 @@ pipeline {
                 }
             }
             post {
-                success { script { stageStatus['Lint Code'] = 'Success' } }
-                failure { script { stageStatus['Lint Code'] = 'Failure' } }
+                success {
+                    script {
+                        stageStatus['Lint Code'] = 'Success'
+                    }
+                }
+                failure {
+                    script {
+                        stageStatus['Lint Code'] = 'Failure'
+                    }
+                }
             }
         }
         stage('Push Changes') {
@@ -90,8 +123,8 @@ pipeline {
                 allOf { expression { currentBuild.result == null } } // Only run if no previous failures
             }
             steps {
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    script {
+                script {
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         dir('reepopeepo') {
                             withCredentials([usernamePassword(credentialsId: 'ba552a1c-c018-497e-a733-cae3f2d4c7b3', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_TOKEN')]) {
                                 sh 'git config user.name "rrehs"'
@@ -105,9 +138,23 @@ pipeline {
                 }
             }
             post {
-                success { script { stageStatus['Push Changes'] = 'Success' } }
-                failure { script { stageStatus['Push Changes'] = 'Failure' } }
-                always { script { if (currentBuild.result == 'SKIPPED') { stageStatus['Push Changes'] = 'Skipped' } } }
+                success {
+                    script {
+                        stageStatus['Push Changes'] = 'Success'
+                    }
+                }
+                failure {
+                    script {
+                        stageStatus['Push Changes'] = 'Failure'
+                    }
+                }
+                always {
+                    script {
+                        if (currentBuild.result == 'SKIPPED') {
+                            stageStatus['Push Changes'] = 'Skipped'
+                        }
+                    }
+                }
             }
         }
     }
