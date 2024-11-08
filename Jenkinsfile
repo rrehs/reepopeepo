@@ -1,14 +1,10 @@
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
-
-// Initialize stageStatus as a JSON string in the environment
-env.stageStatus = JsonOutput.toJson([
+def stageStatus = [
     'Cleanup Workspace': 'Pending',
     'Clone Repository': 'Pending',
     'Build Code': 'Pending',
     'Lint Code': 'Pending',
     'Push Changes': 'Pending'
-])
+]
 
 pipeline {
     agent any
@@ -35,12 +31,12 @@ pipeline {
             post {
                 success {
                     script {
-                        updateStageStatus('Cleanup Workspace', 'Success')
+                        stageStatus['Cleanup Workspace'] = 'Success'
                     }
                 }
                 failure {
                     script {
-                        updateStageStatus('Cleanup Workspace', 'Failure')
+                        stageStatus['Cleanup Workspace'] = 'Failure'
                     }
                 }
             }
@@ -59,12 +55,12 @@ pipeline {
             post {
                 success {
                     script {
-                        updateStageStatus('Clone Repository', 'Success')
+                        stageStatus['Clone Repository'] = 'Success'
                     }
                 }
                 failure {
                     script {
-                        updateStageStatus('Clone Repository', 'Failure')
+                        stageStatus['Clone Repository'] = 'Failure'
                     }
                 }
             }
@@ -83,12 +79,12 @@ pipeline {
             post {
                 success {
                     script {
-                        updateStageStatus('Build Code', 'Success')
+                        stageStatus['Build Code'] = 'Success'
                     }
                 }
                 failure {
                     script {
-                        updateStageStatus('Build Code', 'Failure')
+                        stageStatus['Build Code'] = 'Failure'
                     }
                 }
             }
@@ -106,12 +102,12 @@ pipeline {
             post {
                 success {
                     script {
-                        updateStageStatus('Lint Code', 'Success')
+                        stageStatus['Lint Code'] = 'Success'
                     }
                 }
                 failure {
                     script {
-                        updateStageStatus('Lint Code', 'Failure')
+                        stageStatus['Lint Code'] = 'Failure'
                     }
                 }
             }
@@ -138,18 +134,18 @@ pipeline {
             post {
                 success {
                     script {
-                        updateStageStatus('Push Changes', 'Success')
+                        stageStatus['Push Changes'] = 'Success'
                     }
                 }
                 failure {
                     script {
-                        updateStageStatus('Push Changes', 'Failure')
+                        stageStatus['Push Changes'] = 'Failure'
                     }
                 }
                 always {
                     script {
                         if (currentBuild.result == 'SKIPPED') {
-                            updateStageStatus('Push Changes', 'Skipped')
+                            stageStatus['Push Changes'] = 'Skipped'
                         }
                     }
                 }
@@ -159,17 +155,16 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: 'reepopeepo/**/*.html', allowEmptyArchive: true
-            echo "Final stageStatus: ${env.stageStatus}"
             echo 'Build and lint results archived'
         }
         success {
-            sendEmail('Success', '✅ Build Succeeded', 'green', 'The build and linting processes completed successfully.')
+            sendEmail('Success', '✅', 'green', 'The build and linting processes completed successfully.')
         }
         unstable {
-            sendEmail('Unstable', '⚠️ Build Unstable', 'orange', 'The build completed with some issues.')
+            sendEmail('Unstable', '⚠️', 'orange', 'The build completed with some issues.')
         }
         failure {
-            sendEmail('Failure', '❌ Build Failed', 'red', 'The build encountered errors.')
+            sendEmail('Failure', '❌', 'red', 'The build encountered errors.')
         }
     }
 }
@@ -179,8 +174,7 @@ import org.apache.commons.lang.StringEscapeUtils
 // Helper function to send email with all stages and their statuses
 def sendEmail(buildResult, subjectEmoji, color, message) {
     def emailRecipients = 'khairularman56@gmail.com'
-    def stageStatusMap = new JsonSlurper().parseText(env.stageStatus)
-    def stagesSummary = stageStatusMap.collect { stage, status -> "<li><strong>${stage}</strong>: ${status}</li>" }.join('\n')
+    def stagesSummary = stageStatus.collect { stage, status -> "<li><strong>${stage}</strong>: ${status}</li>" }.join('\n')
     def subject = "${subjectEmoji} Build ${currentBuild.fullDisplayName} ${buildResult}"
     
     // Escape special characters in the build log
@@ -207,11 +201,4 @@ def sendEmail(buildResult, subjectEmoji, color, message) {
         body: body,
         mimeType: 'text/html'
     )
-}
-
-// Function to update the stage status
-def updateStageStatus(stageName, status) {
-    def stageStatusMap = new JsonSlurper().parseText(env.stageStatus)
-    stageStatusMap[stageName] = status
-    env.stageStatus = JsonOutput.toJson(stageStatusMap)
 }
