@@ -128,11 +128,18 @@ pipeline {
     }
 }
 
+import org.apache.commons.lang.StringEscapeUtils
+
 // Helper function to send email with all stages and their statuses
 def sendEmail(buildResult, subjectEmoji, color, message) {
     def emailRecipients = 'khairularman56@gmail.com'
     def stagesSummary = stageStatus.collect { stage, status -> "<li><strong>${stage}</strong>: ${status}</li>" }.join('\n')
     def subject = "${subjectEmoji} Build ${currentBuild.fullDisplayName} ${buildResult}"
+    
+    // Escape special characters in the build log
+    def rawBuildLog = currentBuild.rawBuild.getLog(1000).join('\n')
+    def escapedLog = StringEscapeUtils.escapeHtml(rawBuildLog)
+
     def body = """
     <html>
     <body>
@@ -143,7 +150,7 @@ def sendEmail(buildResult, subjectEmoji, color, message) {
         <p><strong>Job:</strong> ${env.JOB_NAME}</p>
         <p><strong>Build Number:</strong> ${currentBuild.number}</p>
         <h3>Build Log (Last 1000 Lines):</h3>
-        <pre style="background-color: #f4f4f4; padding: 10px;">${currentBuild.rawBuild.getLog(1000).join('\n')}</pre>
+        <pre style="background-color: #f4f4f4; padding: 10px;">${escapedLog}</pre>
     </body>
     </html>
     """
