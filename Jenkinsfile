@@ -164,13 +164,13 @@ pipeline {
             echo 'Build and lint results archived'
         }
         success {
-            sendEmail('Success', '✅ Build Succeeded', 'green', 'The build and linting processes completed successfully.')
+            sendEmail('Success', '✅', 'green', 'The build completed successfully.')
         }
         unstable {
-            sendEmail('Unstable', '⚠️ Build Unstable', 'orange', 'The build completed with some issues.')
+            sendEmail('Unstable', '⚠️', 'orange', 'The build completed with some issues.')
         }
         failure {
-            sendEmail('Failure', '❌ Build Failed', 'red', 'The build encountered errors.')
+            sendEmail('Failure', '❌', 'red', 'The build encountered errors.')
         }
     }
 }
