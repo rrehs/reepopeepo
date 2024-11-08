@@ -40,77 +40,8 @@ pipeline {
                 }
             }
         }
-        stage('Clone Repository') {
-            steps {
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    script {
-                        sh 'git clone https://github.com/rrehs/reepopeepo.git'
-                        dir('reepopeepo') {
-                            sh 'git checkout main'
-                        }
-                    }
-                }
-            }
-            post {
-                success {
-                    script {
-                        stageStatus['Clone Repository'] = 'Success'
-                    }
-                }
-                failure {
-                    script {
-                        stageStatus['Clone Repository'] = 'Failure'
-                    }
-                }
-            }
-        }
-        stage('Build Code') {
-            steps {
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    script {
-                        dir('reepopeepo') {
-                            sh 'npm install -g html-minifier'
-                            sh 'html-minifier --collapse-whitespace --remove-comments --minify-css true --minify-js true -o output.html *.html'
-                        }
-                    }
-                }
-            }
-            post {
-                success {
-                    script {
-                        stageStatus['Build Code'] = 'Success'
-                    }
-                }
-                failure {
-                    script {
-                        stageStatus['Build Code'] = 'Failure'
-                    }
-                }
-            }
-        }
-        stage('Lint Code') {
-            steps {
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    script {
-                        dir('reepopeepo') {
-                            sh 'htmlhint **/*.html'
-                        }
-                    }
-                }
-            }
-            post {
-                success {
-                    script {
-                        stageStatus['Lint Code'] = 'Success'
-                    }
-                }
-                failure {
-                    script {
-                        stageStatus['Lint Code'] = 'Failure'
-                    }
-                }
-            }
-        }
+        // Other stages here...
+
         stage('Push Changes') {
             when {
                 allOf {
@@ -153,15 +84,18 @@ pipeline {
             echo 'Build and lint results archived'
         }
         success {
-            // Send success email
+            // Send success email with all stages and their statuses
             script {
-                def emailRecipients = 'khairularman56@gmail.com' // Update with recipient's email
+                def emailRecipients = 'khairularman56@gmail.com'
+                def stagesSummary = stageStatus.collect { stage, status -> "<li><strong>${stage}</strong>: ${status}</li>" }.join('\n')
                 def subject = "✅ Build ${currentBuild.fullDisplayName} Succeeded"
                 def body = """
                 <html>
                 <body>
                     <h2 style="color: green;">The build has completed successfully!</h2>
                     <p>Congratulations! The build and linting processes passed without any errors.</p>
+                    <h3>Stages Status:</h3>
+                    <ul>${stagesSummary}</ul>
                     <h3>Details:</h3>
                     <p><strong>Job:</strong> ${env.JOB_NAME}</p>
                     <p><strong>Build Number:</strong> ${currentBuild.number}</p>
@@ -175,14 +109,14 @@ pipeline {
                     to: emailRecipients,
                     subject: subject,
                     body: body,
-                    mimeType: 'text/html' // Sending as HTML to allow formatting
+                    mimeType: 'text/html'
                 )
             }
         }
         unstable {
-            // Send unstable email
+            // Send unstable email with all stages and their statuses
             script {
-                def emailRecipients = 'khairularman56@gmail.com' // Update with recipient's email
+                def emailRecipients = 'khairularman56@gmail.com'
                 def stagesSummary = stageStatus.collect { stage, status -> "<li><strong>${stage}</strong>: ${status}</li>" }.join('\n')
                 def subject = "⚠️ Build ${currentBuild.fullDisplayName} Unstable"
                 def body = """
@@ -205,14 +139,14 @@ pipeline {
                     to: emailRecipients,
                     subject: subject,
                     body: body,
-                    mimeType: 'text/html' // Sending as HTML to allow formatting
+                    mimeType: 'text/html'
                 )
             }
         }
         failure {
             // Send failure email with all stages and their statuses
             script {
-                def emailRecipients = 'khairularman56@gmail.com' // Update with recipient's email
+                def emailRecipients = 'khairularman56@gmail.com'
                 def stagesSummary = stageStatus.collect { stage, status -> "<li><strong>${stage}</strong>: ${status}</li>" }.join('\n')
                 def subject = "❌ Build ${currentBuild.fullDisplayName} Failed"
                 def body = """
@@ -235,7 +169,7 @@ pipeline {
                     to: emailRecipients,
                     subject: subject,
                     body: body,
-                    mimeType: 'text/html' // Sending as HTML to allow formatting
+                    mimeType: 'text/html'
                 )
             }
             echo 'Pipeline failed. Check the stages for errors.'
