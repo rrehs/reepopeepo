@@ -118,6 +118,30 @@ pipeline {
                 }
             }
         }
+        stage('Integration Test') {
+            steps {
+                script {
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                        dir('reepopeepo') {
+                            sh 'npm install'  // Install dependencies for the tests
+                            sh 'npm test'     // Run integration tests
+                        }
+                    }
+                }
+            }
+            post {
+                success {
+                    script {
+                        stageStatus['Integration Test'] = 'Success'
+                    }
+                }
+                failure {
+                    script {
+                        stageStatus['Integration Test'] = 'Failure'
+                    }
+                }
+            }
+        }
         stage('Push Changes') {
             when {
                 allOf { expression { currentBuild.result == null } } // Only run if no previous failures
