@@ -1,0 +1,12 @@
+{
+  "name": "reepopeepo",
+  "version": "1.0.0",
+  "description": "1. Download the entire folder\r 2. Open index.html using a web browser\r 3. Enjoy",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
