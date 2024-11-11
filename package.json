@@ -4,7 +4,11 @@
   "description": "1. Download the entire folder\r 2. Open index.html using a web browser\r 3. Enjoy",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "react-app-rewired test",
+    "test:unit": "mocha tests/unit", 
+    "test:integration": "jest tests/integration", 
+    "test:e2e": "cypress run",
+    "lint": "eslint .",
   },
   "keywords": [],
   "author": "",
