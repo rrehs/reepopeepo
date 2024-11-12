@@ -8,7 +8,7 @@
     "test:unit": "mocha tests/unit", 
     "test:integration": "jest tests/integration", 
     "test:e2e": "cypress run",
-    "lint": "eslint .",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "",
