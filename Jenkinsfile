@@ -63,7 +63,7 @@ pipeline {
                 script {
                     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                            sh 'git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/rrehs/nacsa.git'
+                            sh 'git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/rrehs/reepopeepo.git'
                             dir(REPO_DIR) {
                                 sh 'git checkout main' // or "master" if using master
                             }
