@@ -4,6 +4,7 @@
   "description": "1. Download the entire folder\r 2. Open index.html using a web browser\r 3. Enjoy",
   "main": "index.js",
   "scripts": {
+    "build": "webpack --config webpack.config.js",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "mocha tests/unit",
     "test:integration": "jest tests/integration",
@@ -14,6 +15,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint-plugin-html": "^8.1.2"
+    "eslint-plugin-html": "^8.1.2",
+    "html-webpack-plugin": "^5.6.3"
   }
 }
