@@ -93,7 +93,7 @@ pipeline {
                 script {
                     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         dir(REPO_DIR) {
-                            sh 'npm install --legacy-peer-deps'
+                            sh 'npm install'
                             sh 'npm run build'
                         }
                     }
